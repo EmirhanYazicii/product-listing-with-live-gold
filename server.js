@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const fs = require("fs").promises;
 const axios = require("axios");
@@ -11,7 +12,7 @@ require("dotenv").config();
 const API_KEY = process.env.GOLD_API_KEY;
 const GOLD_API_URL = "https://www.goldapi.io/api/XAU/USD";
 
-// Altın fiyatı
+// Gram altın fiyatı
 async function getGoldPrice() {
   try {
     const res = await axios.get(GOLD_API_URL, {
@@ -24,7 +25,8 @@ async function getGoldPrice() {
     const d = res.data;
     const ouncePrice = d.price || d.ask || d.open || d.last;
     if (!ouncePrice) throw new Error("GoldAPI ounce price not found");
-    return ouncePrice / 31.1034768;
+    const gramsPerOunce = 31.1034768;
+    return ouncePrice / gramsPerOunce;
   } catch (err) {
     console.error("getGoldPrice error:", err.message);
     return 65; // fallback
@@ -46,7 +48,6 @@ app.get("/products", async (req, res) => {
       return { ...product, price, popularity };
     });
 
-    // Query filtreleri
     const minPrice = req.query.minPrice ? Number(req.query.minPrice) : null;
     const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : null;
     const popularityFilter = req.query.popularity
@@ -73,9 +74,15 @@ app.get("/products", async (req, res) => {
 const buildPath = path.join(__dirname, "frontend", "build");
 app.use(express.static(buildPath));
 
-// Render uyumlu fallback route
-app.get(".*", (req, res) => {
-  res.sendFile(path.join(buildPath, "index.html"));
+// Render uyumlu fallback route (wildcard isimli)
+app.get("/*splat", (req, res, next) => {
+  if (req.method === "GET" && !req.path.startsWith("/products")) {
+    res.sendFile(path.join(buildPath, "index.html"), (err) => {
+      if (err) next(err);
+    });
+  } else {
+    next();
+  }
 });
 
 // Port
