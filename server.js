@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const fs = require("fs").promises;
 const axios = require("axios");
@@ -12,7 +11,7 @@ require("dotenv").config();
 const API_KEY = process.env.GOLD_API_KEY;
 const GOLD_API_URL = "https://www.goldapi.io/api/XAU/USD";
 
-// Gram altın fiyatı
+// Altın fiyatı
 async function getGoldPrice() {
   try {
     const res = await axios.get(GOLD_API_URL, {
@@ -25,8 +24,7 @@ async function getGoldPrice() {
     const d = res.data;
     const ouncePrice = d.price || d.ask || d.open || d.last;
     if (!ouncePrice) throw new Error("GoldAPI ounce price not found");
-    const gramsPerOunce = 31.1034768;
-    return ouncePrice / gramsPerOunce;
+    return ouncePrice / 31.1034768;
   } catch (err) {
     console.error("getGoldPrice error:", err.message);
     return 65; // fallback
@@ -76,14 +74,8 @@ const buildPath = path.join(__dirname, "frontend", "build");
 app.use(express.static(buildPath));
 
 // Render uyumlu fallback route
-app.use((req, res, next) => {
-  if (req.method === "GET" && !req.path.startsWith("/products")) {
-    res.sendFile(path.join(buildPath, "index.html"), (err) => {
-      if (err) next(err);
-    });
-  } else {
-    next();
-  }
+app.get("*", (req, res) => {
+  res.sendFile(path.join(buildPath, "index.html"));
 });
 
 // Port

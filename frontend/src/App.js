@@ -10,7 +10,7 @@ function App() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("http://localhost:3000/products");
+        const res = await fetch("/products");
         const data = await res.json();
         const updatedData = data.map((p) => ({
           ...p,
