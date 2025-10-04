@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const fs = require("fs").promises;
 const axios = require("axios");
@@ -75,12 +76,14 @@ const buildPath = path.join(__dirname, "frontend", "build");
 app.use(express.static(buildPath));
 
 // Render uyumlu fallback route
-app.get("/*", function (req, res) {
-  res.sendFile(path.join(buildPath, "index.html"), function (err) {
-    if (err) {
-      res.status(500).send(err);
-    }
-  });
+app.use((req, res, next) => {
+  if (req.method === "GET" && !req.path.startsWith("/products")) {
+    res.sendFile(path.join(buildPath, "index.html"), (err) => {
+      if (err) next(err);
+    });
+  } else {
+    next();
+  }
 });
 
 // Port
