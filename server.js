@@ -1,20 +1,17 @@
-// server.js
 const express = require("express");
 const fs = require("fs").promises;
 const axios = require("axios");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
-const PORT = 3000;
-
 app.use(cors());
 
 require("dotenv").config();
-// Gold API bilgileri
 const API_KEY = process.env.GOLD_API_KEY;
 const GOLD_API_URL = "https://www.goldapi.io/api/XAU/USD";
 
-// Gram altın fiyatını döndür
+// Gram altın fiyatı
 async function getGoldPrice() {
   try {
     const res = await axios.get(GOLD_API_URL, {
@@ -26,17 +23,11 @@ async function getGoldPrice() {
     });
 
     const d = res.data;
-    let ouncePrice = d.price || d.ask || d.open || d.last;
-
+    const ouncePrice = d.price || d.ask || d.open || d.last;
     if (!ouncePrice) throw new Error("GoldAPI ounce price not found");
 
     const gramsPerOunce = 31.1034768;
-    const gramPrice = ouncePrice / gramsPerOunce;
-
-    console.log(
-      `GoldAPI: ${ouncePrice} USD/oz -> ${gramPrice.toFixed(2)} USD/g`
-    );
-    return gramPrice;
+    return ouncePrice / gramsPerOunce;
   } catch (err) {
     console.error("getGoldPrice error:", err.message);
     return 65; // fallback
@@ -54,37 +45,26 @@ app.get("/products", async (req, res) => {
     let productsWithPrice = products.map((product) => {
       const pop = Number(product.popularityScore) || 0;
       const weight = Number(product.weight) || 0;
-
-      // Popülerliği 5 üzerinden tam sayıya çevir
       const popularity = Math.round(pop * 5);
-
-      // Fiyatı hesapla
-      const priceRaw = (pop + 1) * weight * goldPrice;
-      const price = Number(priceRaw.toFixed(2));
-
+      const price = Number(((pop + 1) * weight * goldPrice).toFixed(2));
       return { ...product, price, popularity };
     });
 
-    // Query parametreleri
+    // Query filtreleri
     const minPrice = req.query.minPrice ? Number(req.query.minPrice) : null;
     const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : null;
     const popularityFilter = req.query.popularity
       ? Number(req.query.popularity)
       : null;
 
-    if (minPrice !== null && !isNaN(minPrice)) {
+    if (minPrice !== null)
       productsWithPrice = productsWithPrice.filter((p) => p.price >= minPrice);
-    }
-
-    if (maxPrice !== null && !isNaN(maxPrice)) {
+    if (maxPrice !== null)
       productsWithPrice = productsWithPrice.filter((p) => p.price <= maxPrice);
-    }
-
-    if (popularityFilter !== null && !isNaN(popularityFilter)) {
+    if (popularityFilter !== null)
       productsWithPrice = productsWithPrice.filter(
         (p) => p.popularity === popularityFilter
       );
-    }
 
     res.json(productsWithPrice);
   } catch (err) {
@@ -93,13 +73,14 @@ app.get("/products", async (req, res) => {
   }
 });
 
+// Frontend serve
 app.use(express.static(path.join(__dirname, "frontend", "build")));
-
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "build", "index.html"));
 });
 
-const port = process.env.PORT || 3000; // Render'in verdiği port
-app.listen(port, () => {
-  console.log(`Server çalışıyor: http://localhost:${port}`);
-});
+// Port
+const port = process.env.PORT || 3000;
+app.listen(port, () =>
+  console.log(`Server çalışıyor: http://localhost:${port}`)
+);
