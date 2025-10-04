@@ -73,9 +73,11 @@ app.get("/products", async (req, res) => {
   }
 });
 
-// Frontend serve
+// frontend serve
 app.use(express.static(path.join(__dirname, "frontend", "build")));
-app.get("*", (req, res) => {
+
+// tüm diğer route'ları frontend'e yönlendir
+app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "build", "index.html"));
 });
 
