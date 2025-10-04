@@ -75,7 +75,7 @@ const buildPath = path.join(__dirname, "frontend", "build");
 app.use(express.static(buildPath));
 
 // Render uyumlu fallback route
-app.get("*", function (req, res) {
+app.get("/*", function (req, res) {
   res.sendFile(path.join(buildPath, "index.html"), function (err) {
     if (err) {
       res.status(500).send(err);
