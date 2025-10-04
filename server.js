@@ -6,8 +6,8 @@ const path = require("path");
 
 const app = express();
 app.use(cors());
-
 require("dotenv").config();
+
 const API_KEY = process.env.GOLD_API_KEY;
 const GOLD_API_URL = "https://www.goldapi.io/api/XAU/USD";
 
@@ -21,11 +21,9 @@ async function getGoldPrice() {
       },
       timeout: 10000,
     });
-
     const d = res.data;
     const ouncePrice = d.price || d.ask || d.open || d.last;
     if (!ouncePrice) throw new Error("GoldAPI ounce price not found");
-
     const gramsPerOunce = 31.1034768;
     return ouncePrice / gramsPerOunce;
   } catch (err) {
@@ -41,7 +39,6 @@ app.get("/products", async (req, res) => {
     const products = JSON.parse(raw);
 
     const goldPrice = await getGoldPrice();
-
     let productsWithPrice = products.map((product) => {
       const pop = Number(product.popularityScore) || 0;
       const weight = Number(product.weight) || 0;
@@ -73,12 +70,17 @@ app.get("/products", async (req, res) => {
   }
 });
 
-// frontend serve
-app.use(express.static(path.join(__dirname, "frontend", "build")));
+// Frontend serve
+const buildPath = path.join(__dirname, "frontend", "build");
+app.use(express.static(buildPath));
 
-// tüm diğer route'ları frontend'e yönlendir
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "build", "index.html"));
+// Render uyumlu fallback route
+app.get("*", function (req, res) {
+  res.sendFile(path.join(buildPath, "index.html"), function (err) {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
 });
 
 // Port
