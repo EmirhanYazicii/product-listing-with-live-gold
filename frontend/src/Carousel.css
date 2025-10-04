@@ -1,0 +1,106 @@
+/* Carousel.css */
+.carousel-root {
+  position: relative;
+  width: 100%;
+  padding: 10px 28px; /* space for arrows */
+  box-sizing: border-box;
+}
+
+.carousel-viewport {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.carousel-viewport::-webkit-scrollbar { display: none; }
+
+.carousel-track {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  padding: 10px 0;
+}
+
+/* each item flex-basis will be set to fit visibleCount via JS measuring,
+   but provide sensible defaults: */
+.carousel-item {
+  flex: 0 0 calc((100% - 60px) / 4); /* default 4 items with gaps */
+  box-sizing: border-box;
+}
+
+/* make cards responsive with media queries as fallback */
+@media (max-width: 1199px) {
+  .carousel-item { flex: 0 0 calc((100% - 40px) / 3); } /* 3 items */
+}
+@media (max-width: 899px) {
+  .carousel-item { flex: 0 0 calc((100% - 20px) / 2); } /* 2 items */
+}
+@media (max-width: 599px) {
+  .carousel-item { flex: 0 0 100%; } /* 1 item */
+}
+
+/* nav buttons */
+.nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 22px;
+  user-select: none;
+}
+.nav-button.left { left: 8px; }
+.nav-button.right { right: 8px; }
+
+/* dots */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #ddd;
+  cursor: pointer;
+}
+.dot.active { background: #333; }
+
+/* dragging state */
+.carousel-viewport.dragging { cursor: grabbing; cursor: -webkit-grabbing; }
+.carousel-viewport { cursor: grab; cursor: -webkit-grab; }
+
+@media (min-width: 1024px) {
+  .carousel-viewport {
+    overflow-x: auto; /* scroll aç */
+  }
+  .carousel-viewport::-webkit-scrollbar {
+    height: 8px; /* alt scrollbar yüksekliği */
+  }
+  .carousel-viewport::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 4px;
+  }
+  .carousel-viewport::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Tablet ve mobilde overflow-x gizli (sadece swipe) */
+@media (max-width: 1023px) {
+  .carousel-viewport {
+    overflow-x: hidden; /* scroll gizli, swipe ile kaydır */
+  }
+}
